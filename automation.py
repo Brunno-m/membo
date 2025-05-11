@@ -1,52 +1,41 @@
-# automation.py - Optimized with all checks
+# automation.py - Fixed Version
 import os
+import asyncio
 import time
-import requests
 from scanner import fetch_dex_pairs, filter_coins, format_results
 from telegram import Bot
+from telegram.error import TelegramError
 
-# Debugging setup
-DEBUG = True  # Set to False in production
+DEBUG = True
 
-def log(message):
-    if DEBUG:
-        print(f"[{time.ctime()}] {message}")
-
-def send_alert(text):
+async def send_alert(text):
     try:
-        Bot(token=os.getenv("TG_TOKEN")).send_message(
+        bot = Bot(token=os.getenv("TG_TOKEN"))
+        await bot.send_message(
             chat_id=os.getenv("TG_CHAT_ID"),
-            text=text[:4000]  # Truncate long messages
+            text=text[:4000]
         )
-    except Exception as e:
-        log(f"Telegram error: {e}")
+    except TelegramError as e:
+        print(f"Telegram error: {e}")
 
-def automated_scan():
+async def automated_scan():
     try:
-        log("🔄 Starting scan...")
-        
-        # Fetch with rate limit protection
+        print("🔄 Starting scan...")
         pairs = fetch_dex_pairs()
-        time.sleep(1)  # Avoid API throttling
-        log(f"📊 Fetched {len(pairs)} pairs")
+        print(f"📊 Fetched {len(pairs)} pairs")
         
-        # Filter and validate
         filtered = filter_coins(pairs)
-        log(f"✅ Filtered to {len(filtered)} coins")
+        print(f"✅ Filtered to {len(filtered)} coins")
         
         if filtered:
-            send_alert(f"🔄 Results:\n{format_results(filtered)}")
+            await send_alert(f"🔄 Results:\n{format_results(filtered)}")
         else:
-            send_alert("⚠️ No coins matched filters")
+            await send_alert("⚠️ No coins matched filters")
             
     except Exception as e:
         error_msg = f"🔥 Scan failed: {str(e)[:200]}"
-        log(error_msg)
-        send_alert(error_msg)
+        print(error_msg)
+        await send_alert(error_msg)
 
 if __name__ == "__main__":
-    automated_scan()
-    # For GH Actions, add:
-    # while True:
-    #     automated_scan()
-    #     time.sleep(10800)  # 3 hours
+    asyncio.run(automated_scan())
