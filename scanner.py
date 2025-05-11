@@ -3,6 +3,11 @@ import requests
 import time
 import json
 from datetime import datetime
+import os
+
+# Environment validation
+if not os.getenv("TG_TOKEN") or not os.getenv("TG_CHAT_ID"):
+    raise ValueError("Missing Telegram credentials in environment variables")
 
 # Configuration
 DEXSCREENER_API = "https://api.dexscreener.com/latest/dex"
