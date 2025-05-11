@@ -1,12 +1,12 @@
 name: Memecoin Scanner
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours (UTC)
+    - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:  # Manual trigger
 
 jobs:
   scan:
-    runs-on: ubuntu-22.04  # Faster spin-up
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
@@ -18,10 +18,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run automated scan
+      - name: Run scan
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        
 
       - name: Run scan
         timeout-minutes: 1  # Kills if stuck
