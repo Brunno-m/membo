@@ -1,0 +1,25 @@
+name: Memecoin Scanner
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # Every 3 hours (UTC)
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run automated scan
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: python automation.py
