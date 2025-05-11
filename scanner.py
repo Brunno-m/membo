@@ -37,7 +37,6 @@ PRESETS = {
 def fetch_dex_pairs(chain="solana"):
     """Fetch new pairs from DexScreener"""
     try:
-        try:
         url = f"https://api.dexscreener.com/latest/dex/tokens/{chain}"
         response = requests.get(url, timeout=10)
         response.raise_for_status()  # Raises HTTPError for bad status
