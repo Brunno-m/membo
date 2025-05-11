@@ -35,18 +35,23 @@ PRESETS = {
 }
         
 def fetch_dex_pairs(chain="solana"):
-    """Simplified and robust version"""
     try:
         url = f"https://api.dexscreener.com/latest/dex/tokens/{chain}"
-        response = requests.get(url, timeout=10)
-        return response.json().get("pairs", [])  # Always returns list
+        response = requests.get(url, timeout=15)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("pairs") or []  # Force empty list if None
+        return []
     except Exception as e:
-        print(f"DEX API Error: {e}")
-        return []  # Fail safe
+        print(f"⚠️ DEX Error: {e}")
+        return []
     
         
 
 def filter_coins(pairs, preset_name="Aggressive"):
+    if not isinstance(pairs, list):  # Critical check
+        print(f"⚠️ Invalid pairs data: {type(pairs)}")
+        return []
     """Apply preset filters to coin list"""
     preset = PRESETS.get(preset_name, PRESETS[DEFAULT_PRESET])
     return [
