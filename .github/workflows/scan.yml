@@ -1,7 +1,7 @@
 name: Memecoin Scanner
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours (UTC)
+    - cron: '0 */3 * * *'  # Every 3 hours
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -18,9 +18,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run automated scan
+      - name: Run scan
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-      - run: pip install python-telegram-bot requests
-      - run: python automation.py
+        run: python automation.py
