@@ -29,11 +29,14 @@ PRESETS = {
     }
 }
 
-def fetch_dex_pairs(chain="solana", max_age=5):
+def fetch_dex_pairs(chain="solana"):
     """Fetch new pairs from DexScreener"""
     try:
-        url = f"{DEXSCREENER_API}/tokens/{chain}?sort=createdAt&order=desc"
-        response = requests.get(url, timeout=10).json()
+        try:
+        url = f"https://api.dexscreener.com/latest/dex/tokens/{chain}"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Raises HTTPError for bad status
+        data = response.json()
         
         pairs = []
         for pair in response.get("pairs", [])[:50]:  # Top 50 new pairs
@@ -47,10 +50,12 @@ def fetch_dex_pairs(chain="solana", max_age=5):
                     "price_change": float(pair["priceChange"]["h24"]),
                     "chain": chain
                 })
-        return pairs
+        return data.get("pairs", [])  # Always returns list, never None
     except Exception as e:
         print(f"DEX API Error: {e}")
-        return []
+        return []  # Fail gracefully
+    
+        
 
 def filter_coins(pairs, preset_name="Aggressive"):
     """Apply preset filters to coin list"""
