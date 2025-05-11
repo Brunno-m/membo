@@ -22,9 +22,5 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        
-
-      - name: Run scan
         timeout-minutes: 1  # Kills if stuck
         run: python automation.py
-
