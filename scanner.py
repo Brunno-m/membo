@@ -33,31 +33,38 @@ PRESETS = {
         "min_1h_txs": 300
     }
 }
-
-def fetch_dex_pairs(chain="solana"):
-    """Fetch new pairs from DexScreener"""
+        
+def fetch_dex_pairs(chain="solana", max_age=60):
+    """Fetch and process new pairs from DexScreener"""
     try:
         url = f"https://api.dexscreener.com/latest/dex/tokens/{chain}"
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Raises HTTPError for bad status
+        response.raise_for_status()
         data = response.json()
         
+        # Key fix: Access 'pairs' from response.json() not response object
         pairs = []
-        for pair in response.get("pairs", [])[:50]:  # Top 50 new pairs
-            age_min = (time.time() - pair["pairCreatedAt"]/1000) / 60
-            if age_min <= max_age:
-                pairs.append({
-                    "symbol": pair["baseToken"]["symbol"],
-                    "age_min": age_min,
-                    "liquidity": float(pair["liquidity"]["usd"]),
-                    "dev_hold": float(pair.get("holders", {}).get("holdersShare", 0)),
-                    "price_change": float(pair["priceChange"]["h24"]),
-                    "chain": chain
-                })
-        return data.get("pairs", [])  # Always returns list, never None
+        for pair in data.get("pairs", [])[:50]:  # Top 50 pairs
+            try:
+                age_min = (time.time() - pair["pairCreatedAt"]/1000) / 60
+                if age_min <= max_age:
+                    pairs.append({
+                        "symbol": pair["baseToken"]["symbol"],
+                        "age_min": round(age_min, 1),
+                        "liquidity": float(pair["liquidity"].get("usd", 0)),
+                        "dev_hold": float(pair.get("holders", {}).get("holdersShare", 0)),
+                        "price_change": float(pair["priceChange"]["h24"]),
+                        "chain": chain
+                    })
+            except KeyError as e:
+                print(f"Skipping malformed pair: {e}")
+                continue
+                
+        return pairs  # Returns processed list or empty []
+        
     except Exception as e:
-        print(f"DEX API Error: {e}")
-        return []  # Fail gracefully
+        print(f"DEX API Error: {str(e)}")
+        return []  # Graceful fallback
     
         
 
